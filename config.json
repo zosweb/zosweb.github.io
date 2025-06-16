@@ -12,7 +12,7 @@
       "date": "2025 年 06 月下旬",
       "category": "新闻",
       "filePath": "./articles/2025/关于项目恢复运作的通知.md",
-      "coverImage": "./images/react-hooks-cover.jpg",
+      "coverImage": "",
       "tags": ["重要事项公示","通知"]
     },
     {
@@ -23,7 +23,7 @@
       "date": "2024 年 09 月上旬",
       "category": "新闻",
       "filePath": "./articles/2024/项目概述.md",
-      "coverImage": "./images/react-hooks-cover.jpg",
+      "coverImage": "",
       "tags": ["重要事项公示"]
     }
   ]
