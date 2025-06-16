@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企业</title>
+  <script src="tailwind.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@9.1.2/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3875c6'
+          }
+        }
+      },
+      darkMode: 'class'
+    }
+  </script>
+  <style>
+    .markdown-content h1 {
+      font-size: 1.875rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    .markdown-content h2 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 0.75rem;
+    }
+    .markdown-content h3 {
+      font-size: 1.25rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    .markdown-content p {
+      @apply mb-4 leading-relaxed;
+    }
+    .markdown-content ul {
+      @apply list-disc list-inside mb-4;
+    }
+    .markdown-content ol {
+      @apply list-decimal list-inside mb-4;
+    }
+    .markdown-content blockquote {
+      @apply border-l-4 border-gray-300 dark: border-gray-600 pl-4 italic mb-4;
+    }
+    .markdown-content code {
+      @apply bg-gray-100 dark: bg-gray-800 px-2 py-1 rounded text-sm;
+    }
+    .markdown-content pre {
+      @apply bg-gray-100 dark: bg-gray-800 p-4 rounded overflow-x-auto mb-4;
+    }
+    .markdown-content pre code {
+      @apply bg-transparent p-0;
+    }
+    .markdown-content a {
+      @apply text-primary hover: underline;
+    }
+    .markdown-content img {
+      @apply max-w-full h-auto rounded-lg mb-4;
+    }
+  </style>
+</head>
+<body class="bg-[#ecedf1] dark:bg-black text-gray-900 dark:text-gray-100 transition-colors duration-200">
+  <!-- 导航栏 -->
+  <nav class="bg-primary dark:bg-black sticky top-0 z-10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-14">
+        <!-- 首页标题 -->
+        <h1 id="homeTitle" class="text-xl font-bold text-white dark:text-white cursor-pointer" onclick="showHomePage()"></h1>
+
+        <!-- 文章页返回按钮 -->
+        <button id="backButton" class="hidden inline-flex items-center text-white dark:text-white hover:text-white/80 dark:hover:text-white/80 transition-colors" onclick="showHomePage()">
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          返回
+        </button>
+
+        <!-- 深浅色切换按钮 -->
+        <button id="themeToggle" class="p-2 transition-colors" onclick="toggleTheme()">
+          <!-- 太阳图标 (浅色模式) -->
+          <svg id="sunIcon" class="w-5 h-5 text-white dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+          <!-- 月亮图标 (深色模式) -->
+          <svg id="moonIcon" class="w-5 h-5 text-white dark:text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容区域 -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- 首页 - 文章列表 -->
+    <div id="homePage" class="space-y-6">
+
+
+      <div id="articleList" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <!-- 文章卡片将在这里动态生成 -->
+      </div>
+
+      <div id="loadingSpinner" class="text-center py-8">
+        <div class="flex justify-center">
+          <div class="relative w-12 h-12">
+            <div class="absolute inset-0 rounded-full border-4 border-t-transparent border-blue-500 animate-spin"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="errorMessage" class="text-center py-8 hidden">
+        <p class="text-red-600 dark:text-red-400">
+          加载文章列表失败，请检查 config.json 文件
+        </p>
+      </div>
+    </div>
+
+    <!-- 文章预览页面 -->
+    <div id="articlePage" class="hidden">
+
+      <article class="prose prose-lg max-w-none dark:prose-invert">
+        <header class="mb-8">
+          <h1 id="articleTitle" class="text-4xl font-bold mb-4"></h1>
+          <div class="flex items-center text-gray-600 dark:text-gray-400 text-sm">
+            <span id="articleDate"></span>
+            <span class="mx-2">•</span>
+            <span id="articleAuthor"></span>
+            <span class="mx-2">•</span>
+            <span id="articleCategory" class="bg-primary/10 text-primary px-2 py-1 rounded-full"></span>
+          </div>
+        </header>
+
+        <div id="articleContent" class="markdown-content mb-8">
+          <!-- Markdown 内容将在这里显示 -->
+        </div>
+      </article>
+
+      <div id="articleLoading" class="text-center py-8">
+        <div class="flex justify-center">
+          <div class="relative w-12 h-12">
+            <div class="absolute inset-0 rounded-full border-4 border-t-transparent border-blue-500 animate-spin"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="articleError" class="text-center py-8 hidden">
+        <p class="text-red-600 dark:text-red-400">
+          加载文章失败，请更新您的浏览器
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-card" class="fixed bottom-0 left-0 w-full h-auto py-2 px-4 bg-primary backdrop-blur-md border-t border-[0.1px] border-white/20 dark:border-gray-600/20 transform translate-y-full transition-all duration-500 ease-out opacity-0">
+    <div class="flex items-center justify-between">
+      <p class="text-xs text-white dark:text-gray-200 text-left leading-relaxed flex-1 pr-4">
+        本站由企业开发，版权归企业所有。<br>
+        企业对外邮箱：company@zeroonespark.com。
+      </p>
+      <button id="close-footer-card" class="flex-shrink-0 w-6 h-6 rounded-full border border-[0.1px] border-gray-400/50 dark:border-gray-500/50 bg-transparent hover:bg-gray-100/20 dark:hover:bg-gray-700/20 transition-colors duration-200 flex items-center justify-center">
+        <svg class="w-3 h-3 text-white dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+
+
+  <script>
+    // 主题管理
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+          updateThemeIcon(true);
+        } else {
+          document.documentElement.classList.remove('dark');
+          updateThemeIcon(false);
+        }
+      } else {
+        // 默认浅色模式
+        document.documentElement.classList.remove('dark');
+        updateThemeIcon(false);
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        updateThemeIcon(false);
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        updateThemeIcon(true);
+      }
+    }
+
+    function updateThemeIcon(isDark) {
+      const sunIcon = document.getElementById('sunIcon');
+      const moonIcon = document.getElementById('moonIcon');
+      if (isDark) {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+      } else {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+      }
+    }
+
+    // 页面加载时初始化主题
+    initTheme();
+
+    // 应用状态
+    let articles = [];
+    let currentView = 'home';
+
+    // 页面加载时初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      loadArticles();
+    });
+
+    // 加载文章列表
+    async function loadArticles() {
+      try {
+        const response = await fetch('./config.json');
+        if (!response.ok) {
+          throw new Error('配置文件加载失败，请更新您的浏览器');
+        }
+        const config = await response.json();
+        articles = config.articles;
+
+        // 更新博客标题
+        document.title = config.blog.title;
+        document.querySelector('nav h1').textContent = config.blog.title;
+
+        renderArticleList();
+        hideLoading();
+      } catch (error) {
+        showError();
+        console.error('加载配置失败:', error);
+      }
+    }
+
+    // 渲染文章列表
+    function renderArticleList() {
+      const articleList = document.getElementById('articleList');
+      articleList.innerHTML = '';
+
+      articles.forEach(article => {
+        const articleCard = document.createElement('div');
+        articleCard.className = 'bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 cursor-pointer';
+        articleCard.onclick = () => showArticle(article);
+
+        articleCard.innerHTML = `
+        ${article.coverImage ? `
+        <div class="aspect-video w-full overflow-hidden rounded-t-lg">
+        <img src="${article.coverImage}" alt="${article.title}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" onerror="this.parentElement.style.display='none'">
+        </div>
+        `: ''}
+        <div class="p-6">
+        <div class="flex items-center justify-between mb-3">
+        <span class="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full">${article.category}</span>
+        <span class="text-xs text-gray-500 dark:text-gray-400">${article.date}</span>
+        </div>
+        <h3 class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100 hover:text-primary transition-colors">${article.title}</h3>
+        <p class="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-3">${article.description}</p>
+        <div class="flex items-center justify-between">
+        <span class="text-xs text-gray-500 dark:text-gray-400">${article.author}</span>
+        <div class="flex flex-wrap gap-1">
+        ${article.tags.slice(0, 2).map(tag =>
+          `<span class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">${tag}</span>`
+        ).join('')}
+        </div>
+        </div>
+        </div>
+        `;
+
+        articleList.appendChild(articleCard);
+      });
+    }
+
+    // 显示文章详情
+    async function showArticle(article) {
+      currentView = 'article';
+
+      // 更新导航栏
+      document.getElementById('homeTitle').classList.add('hidden');
+      document.getElementById('backButton').classList.remove('hidden');
+
+      // 切换页面
+      document.getElementById('homePage').classList.add('hidden');
+      document.getElementById('articlePage').classList.remove('hidden');
+
+      // 显示文章信息
+      document.getElementById('articleTitle').textContent = article.title;
+      document.getElementById('articleDate').textContent = article.date;
+      document.getElementById('articleAuthor').textContent = article.author;
+      document.getElementById('articleCategory').textContent = article.category;
+
+      // 显示加载状态
+      document.getElementById('articleLoading').classList.remove('hidden');
+      document.getElementById('articleContent').innerHTML = '';
+      document.getElementById('articleError').classList.add('hidden');
+
+      // 滚动到顶部
+      window.scrollTo(0, 0);
+
+      try {
+        // 读取 Markdown 文件
+        const response = await fetch(article.filePath);
+        if (!response.ok) {
+          throw new Error('文章文件加载失败');
+        }
+        const markdownContent = await response.text();
+
+        // 使用 marked 解析 Markdown
+        const htmlContent = marked.parse(markdownContent);
+
+        // 显示解析后的内容
+        document.getElementById('articleContent').innerHTML = htmlContent;
+        document.getElementById('articleLoading').classList.add('hidden');
+      } catch (error) {
+        document.getElementById('articleLoading').classList.add('hidden');
+        document.getElementById('articleError').classList.remove('hidden');
+        console.error('加载文章失败:', error);
+      }
+    }
+
+    // 显示首页
+    function showHomePage() {
+      currentView = 'home';
+
+      // 更新导航栏
+      document.getElementById('backButton').classList.add('hidden');
+      document.getElementById('homeTitle').classList.remove('hidden');
+
+      // 切换页面
+      document.getElementById('articlePage').classList.add('hidden');
+      document.getElementById('homePage').classList.remove('hidden');
+      window.scrollTo(0, 0);
+    }
+
+
+
+    // 隐藏加载状态
+    function hideLoading() {
+      document.getElementById('loadingSpinner').classList.add('hidden');
+    }
+
+    // 显示错误信息
+    function showError() {
+      document.getElementById('loadingSpinner').classList.add('hidden');
+      document.getElementById('errorMessage').classList.remove('hidden');
+    }
+  </script>
+  <script>
+    // 显示卡片的函数
+    function showFooterCard() {
+      const card = document.getElementById('footer-card');
+
+      // 弹出动画
+      card.classList.remove('translate-y-full', 'opacity-0');
+      card.classList.add('translate-y-0', 'opacity-100');
+
+      // 1秒后从蓝色渐变为白色
+      setTimeout(() => {
+        card.classList.remove('bg-blue-500/80');
+        card.classList.add('bg-white/80', 'dark:bg-gray-800/80');
+
+        // 同时更新文字颜色
+        const text = card.querySelector('p');
+        const closeBtn = card.querySelector('button svg');
+        text.classList.remove('text-white');
+        text.classList.add('text-gray-700', 'dark:text-gray-200');
+        closeBtn.classList.remove('text-white');
+        closeBtn.classList.add('text-gray-600', 'dark:text-gray-300');
+      }, 1000);
+    }
+
+    // 关闭卡片的函数
+    function hideFooterCard() {
+      const card = document.getElementById('footer-card');
+      card.classList.add('translate-y-full', 'opacity-0');
+      card.classList.remove('translate-y-0', 'opacity-100');
+    }
+
+    // 绑定关闭按钮事件
+    document.getElementById('close-footer-card').addEventListener('click', hideFooterCard);
+
+    // 页面加载后自动显示卡片
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(showFooterCard, 100); // 稍微延迟确保页面渲染完成
+    });
+  </script>
+  <script>
+    // 监听目标元素
+    const target = document.getElementById('articlePage');
+
+    // 创建一个观察器实例
+    const observer = new MutationObserver(function(mutationsList) {
+      for (const mutation of mutationsList) {
+        if (mutation.attributeName === 'class') {
+          const hasHidden = target.classList.contains('hidden');
+          if (!hasHidden) {
+            document.body.classList.add('bg-white');
+          } else {
+            document.body.classList.remove('bg-white');
+          }
+        }
+      }
+    });
+
+    // 配置观察选项：监听属性变化
+    observer.observe(target, {
+      attributes: true
+    });
+  </script>
+</body>
+</html>
